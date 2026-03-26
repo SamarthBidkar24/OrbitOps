@@ -1,0 +1,76 @@
+{
+  "S": {
+    "full_name": "Silicaceous (Stony)",
+    "composition": "Silicate minerals such as olivine and pyroxene. Rocky and metallic layers.",
+    "common_examples": [
+      "Eros",
+      "Itokawa",
+      "Gaspra",
+      "Iris",
+      "Massalia"
+    ],
+    "mining_potential": "High",
+    "mining_reason": "Rich in iron-nickel alloys, magnesium, and precious metals. Solid rock structure favorable for anchoring.",
+    "india_connection": "Predominantly linked to Ordinary Chondrite meteorites often found in the Deccan Traps and Rajasthan."
+  },
+  "C": {
+    "full_name": "Carbonaceous",
+    "composition": "Hydrated silicates, organics, and carbon. Very low albedo (dark).",
+    "common_examples": [
+      "Ceres",
+      "Hygiea",
+      "Mathilde",
+      "Bennu (B-variant)"
+    ],
+    "mining_potential": "Very High",
+    "mining_reason": "High water content (ice/hydrates) which can be split into rocket fuel (H2/O2). Organic compounds for sustainable space farming.",
+    "india_connection": "Corresponds to rare Carbonaceous Chondrites like the Vissannapeta fall in Andhra Pradesh."
+  },
+  "X": {
+    "full_name": "Metallic / Core-Representative",
+    "composition": "Likely purely Nickel-Iron (M-type) or enstatite chondrites (E-type).",
+    "common_examples": [
+      "Psyche",
+      "Kalliope",
+      "Lutetia"
+    ],
+    "mining_potential": "Extreme",
+    "mining_reason": "Rich in high-purity iron, nickel, and Platinum Group Metals (PGMs) worth trillions of dollars.",
+    "india_connection": "Metal-rich fragments found near the Lonar Crater impact site share similar metallic properties."
+  },
+  "D": {
+    "full_name": "Dark / Primitive",
+    "composition": "Organic-rich silicates, carbon, and anhydrous silicates. Reddish in color.",
+    "common_examples": [
+      "Hektor",
+      "Patroclus",
+      "Arrokoth (KBO similarity)"
+    ],
+    "mining_potential": "Medium",
+    "mining_reason": "Critical for understanding early solar system chemistry. Source of complex organics.",
+    "india_connection": "Remnant materials from the proto-solar disk, similar to deep-space ice fragments found in Antarctic ice-melt studies in India."
+  },
+  "V": {
+    "full_name": "Vesta-like (Basaltic)",
+    "composition": "Basaltic crustal material similar to terrestrial volcanic rock. Rich in pyroxene.",
+    "common_examples": [
+      "Vesta",
+      "Magnya"
+    ],
+    "mining_potential": "Medium",
+    "mining_reason": "Differentiated body materials \u2014 good for construction materials (regolith) and rare Earth elements.",
+    "india_connection": "Direct link to HED meteorites (Howardite, Eucrite, Diogenite) which are studied at PRL, Ahmedabad."
+  },
+  "B": {
+    "full_name": "Blue / Hydrated Carbonaceous",
+    "composition": "Sub-type of C-complex. Blue-sloped spectra indicating potential surface alterations or fine grains.",
+    "common_examples": [
+      "Pallas",
+      "Bennu",
+      "Ryugu"
+    ],
+    "mining_potential": "High",
+    "mining_reason": "Easily accessible near-Earth targets with high hydration levels. Ideal for water extraction missions.",
+    "india_connection": "Similar to the mineralogy of the 2013 Mukundpura CM2 carbonaceous chondrite fall."
+  }
+}

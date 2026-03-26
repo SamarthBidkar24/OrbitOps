@@ -1,0 +1,31 @@
+shower_code,name,ra_radiant,dec_radiant,solar_long_peak,zhr,velocity_kms
+PER,Perseids,48.2,58.1,140.0,100,59
+GEM,Geminids,112.3,32.5,261.0,150,35
+LEO,Leonids,153.5,21.6,235.0,15,71
+ORI,Orionids,95.0,15.8,208.0,20,66
+ETA,Eta Aquariids,338.0,-1.0,45.5,50,66
+QUA,Quadrantids,230.1,48.5,283.0,120,41
+LYR,Lyrids,271.4,33.6,32.3,18,49
+SDA,South Delta Aquariids,340.0,-16.4,125.0,25,41
+TAU,Taurids,52.0,14.0,224.0,10,27
+DRA,Draconids,262.1,54.0,195.0,10,20
+URS,Ursids,217.0,75.3,270.7,10,33
+MON,Monocerotids,100.0,8.0,257.7,5,42
+COM,Coma Berenicids,175.0,25.0,271.0,5,65
+NOO,Northern Orionids,88.5,23.1,208.0,5,42
+KAP,Kappa Cygnids,286.0,51.0,145.0,5,25
+AND,Andromedids,20.9,25.8,235.0,5,18
+PHO,Phoenicids,15.0,-55.0,244.7,5,18
+NTA,North Taurids,58.0,22.0,229.0,5,29
+JAC,July Gamma Draconids,270.0,50.5,105.0,5,28
+AUR,Aurigids,84.0,42.0,158.6,6,66
+SPE,September Epsilon Perseids,48.0,39.7,177.0,5,64
+CAP,Alpha Capricornids,307.5,-10.0,127.0,5,23
+GDR,Gamma Draconids,268.0,51.0,105.0,5,28
+LMI,Leonis Minorids,162.0,37.2,209.0,5,62
+OPH,Ophiuchids,258.0,-20.0,80.0,5,28
+JBO,June Bootids,224.0,48.0,83.0,5,18
+PPU,Pi Puppids,110.0,-45.0,26.8,5,18
+ARC,Alpha Centaurids,211.0,-59.0,319.2,6,56
+GAN,Gamma Normids,239.0,-50.0,353.3,6,56
+VEL,Delta Velids,131.0,-52.0,285.0,5,35
