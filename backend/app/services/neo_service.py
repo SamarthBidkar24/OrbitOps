@@ -1,17 +1,13 @@
-import joblib
-from app.core.config import settings
-
 class NeoService:
-    def __init__(self):
-        self.model = None
-
-    def load(self):
-        self.model = joblib.load(settings.NEO_MODEL_PATH)
-
-    def predict(self, features: dict):
-        if self.model is None:
-            raise RuntimeError("NEO model not loaded.")
-        # TODO: preprocess features and run inference
-        return {}
+    def predict(self, date: str, observatory_index: int, app_state):
+        """Interface for the NEO risk assessment functionality."""
+        neo_module = getattr(app_state, "neo", None)
+        if not neo_module:
+            raise RuntimeError("NEO prediction module not loaded.")
+        
+        return neo_module.predict_neo(
+            date_str=date, 
+            observatory_index=observatory_index
+        )
 
 neo_service = NeoService()

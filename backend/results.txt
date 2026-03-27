@@ -1,0 +1,15 @@
+﻿Testing 1: POST /api/v1/neo/predict
+  [OK] Success: No 'dummy' key. Real model data returned.
+----------------------------------------
+Testing 2: GET /api/v1/meteor/calendar/Mumbai?year=2026&month=12
+  [INFO] Found 31 keys in response.
+  [INFO] 2026-12-13: high intensity, showers: ['Perseids', 'Geminids', 'Leonids', 'Orionids', 'Taurids', 'Monocerotids', 'Northern Orionids', 'Andromedids', 'North Taurids', 'Aurigids', 'September Epsilon Perseids', 'Leonis Minorids', 'Pi Puppids']
+  [INFO] 2026-12-14: high intensity, showers: ['Perseids', 'Geminids', 'Leonids', 'Orionids', 'Taurids', 'Monocerotids', 'Northern Orionids', 'Andromedids', 'North Taurids', 'Aurigids', 'September Epsilon Perseids', 'Leonis Minorids', 'Pi Puppids']
+  [OK] Success: 31 keys found, Geminids high intensity confirmed.
+----------------------------------------
+Testing 3: POST /api/v1/chatbot/chat
+  [INFO] Receiving stream: .................................
+  [INFO] Full Response snippet: The darkest sky in India is found at Hanle in Ladakh, home to the Indian Astronomical Observatory (I...
+  [OK] Success: Streamed text mentions Hanle or Ladakh.
+----------------------------------------
+ALL TESTS PASSED! Backend is correctly wired.
