@@ -1,3 +1,10 @@
+import React from 'react';
+import CompositionChart from '../components/Spectra/CompositionChart';
+
 export default function Spectra() {
-  return <h1>Stellar Spectra Classifier 🌟</h1>;
+  return (
+    <div className="bg-[#050505] min-h-screen">
+      <CompositionChart />
+    </div>
+  );
 }
