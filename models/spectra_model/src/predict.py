@@ -32,7 +32,7 @@ class EncoderOnly(nn.Module):
         return self.encoder(x)
 
 # ── Module Level Loading ───────────────────────────────────────────────────────
-print("[→] Loading spectral inference components...")
+print("[->] Loading spectral inference components...")
 try:
     # 1. Feature Preprocessing
     scaler = joblib.load(SAVED_DIR / "scaler.pkl")

@@ -18,7 +18,7 @@ export default function Neo() {
         fontWeight: '200',
         textTransform: 'uppercase'
       }}>
-        NEO Hazard Predictor <span style={{ color: '#ffa500' }}>☄️</span>
+        Neo Observation <span style={{ color: '#ffa500' }}>☄️</span>
       </h1>
     </div>
   );
