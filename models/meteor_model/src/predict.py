@@ -24,8 +24,7 @@ SHOWERS_CSV_PATH = DATA_DIR / "iau_meteor_showers.csv"
 # Global module state
 try:
     lookup_df = pd.read_parquet(LOOKUP_PATH)
-    # Ensure date is string format as used in lookup_df during building
-    lookup_df['date'] = lookup_df['date'].astype(str)
+    lookup_df['date'] = pd.to_datetime(lookup_df['date'], errors='coerce')
     
     city_bortle = joblib.load(BORTLE_MAP_PATH)
     cities_df = pd.read_csv(CITIES_CSV_PATH)
@@ -147,33 +146,49 @@ def get_tonight_showers(city_name: str) -> dict:
     }
 
 def get_month_calendar(city_name: str, year: int, month: int) -> dict:
-    prefix = f"{year}-{month:02d}"
-    df_month = lookup_df[(lookup_df['city'] == city_name) & 
-                         (lookup_df['date'].str.startswith(prefix))].copy()
+    """Returns a dictionary of meteor intensities for a specific month and city."""
+    if lookup_df.empty:
+        return {}
+        
+    # 1. Force parse date column
+    lookup_df['date'] = pd.to_datetime(lookup_df['date'], errors='coerce')
     
-    if df_month.empty:
+    # 2. Add fuzzy matching
+    available_cities = lookup_df['city'].unique()
+    matches = difflib.get_close_matches(city_name, available_cities, n=1, cutoff=0.6)
+    if not matches:
+        return {}
+    matched_city = matches[0]
+
+    # 3. Filter using matched_city
+    mask = (
+        (lookup_df['city'] == matched_city) &
+        (lookup_df['date'].dt.year == year) &
+        (lookup_df['date'].dt.month == month)
+    )
+    filtered = lookup_df[mask]
+
+    # 4. Debug info if empty
+    if filtered.empty:
+        print(f"Debug: city={city_name}, matched={matched_city}")
+        print(f"Debug: year={year}, month={month}")
+        print(f"Debug: available dates sample: {lookup_df['date'].dt.year.unique()[:5]}")
         return {}
 
-    calendar = {}
-    grouped = df_month.groupby('date')
-    
-    for date_str, group in grouped:
-        max_zhr = group['adjusted_zhr'].max()
-        showers_above_0 = group[group['is_visible'] == True]['shower_name'].tolist()
-        
-        # Intensity mapping
-        if max_zhr < 5: intensity = "none"
-        elif max_zhr < 25: intensity = "low"
-        elif max_zhr < 60: intensity = "medium"
-        else: intensity = "high"
-        
-        calendar[date_str] = {
-            "showers": showers_above_0,
-            "peak_zhr": float(max_zhr),
-            "intensity": intensity
+    # 5. Group by date, build return dict
+    result = {}
+    for date, group in filtered.groupby(filtered['date'].dt.date):
+        visible = group[group['is_visible'] == True]
+        max_zhr = float(visible['adjusted_zhr'].max()) if len(visible) > 0 else 0.0
+        result[str(date)] = {
+            "showers": visible['shower_name'].tolist(),
+            "peak_zhr": round(max_zhr, 1),
+            "intensity": (
+                "high"   if max_zhr > 60 else
+                "medium" if max_zhr > 25 else
+                "low"    if max_zhr > 5  else "none")
         }
-        
-    return calendar
+    return result
 
 def get_dark_spots(city_name: str, radius_km: int = 300) -> list:
     if city_name not in cities_df['city'].values:

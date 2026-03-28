@@ -115,7 +115,7 @@ def find_highest_alt_ist(cd_dt: datetime, ra: float, dec: float, obs_idx: int) -
 
 def get_orbital_elements(des: str) -> dict:
     """Fetches orbital elements from JPL SBDB API."""
-    fallback = {"a": 1.2, "e": 0.3, "i": 10.0, "q": 0.9}
+    fallback = {"a": 1.2, "e": 0.3, "i": 10.0, "om": 0.0, "w": 0.0, "ma": 0.0}
     url = f"https://ssd-api.jpl.nasa.gov/sbdb.api?sstr={des}"
     try:
         resp = requests.get(url, timeout=3)
@@ -125,21 +125,40 @@ def get_orbital_elements(des: str) -> dict:
             elements = orbit.get('elements', [])
             
             # Map elements based on 'name' key in JPL output
-            # Elements typically: a, e, i, q...
+            # Elements typically: a, e, i, q, om, w, ma
             extracted = {}
+            mapping = {'a': 'a', 'e': 'e', 'i': 'i', 'om': 'om', 'w': 'w', 'ma': 'ma'}
             for el in elements:
                 name = el.get('name')
-                if name in ['a', 'e', 'i', 'q']:
-                    extracted[name] = float(el.get('value'))
+                if name in mapping:
+                    extracted[mapping[name]] = float(el.get('value'))
             
             # Use fallback for missing keys
             for key in fallback:
                 if key not in extracted:
                     extracted[key] = fallback[key]
-            return extracted
+            
+            # Ensure omega, w, M naming matches user request if they differ
+            # User asked for: { a, e, i, omega, w, M }
+            # JPL: om (omega), w (w), ma (M)
+            return {
+                "a": extracted["a"],
+                "e": extracted["e"],
+                "i": extracted["i"],
+                "omega": extracted["om"],
+                "w": extracted["w"],
+                "M": extracted["ma"]
+            }
     except (Timeout, Exception):
         pass
-    return fallback
+    return {
+        "a": fallback["a"],
+        "e": fallback["e"],
+        "i": fallback["i"],
+        "omega": fallback["om"],
+        "w": fallback["w"],
+        "M": fallback["ma"]
+    }
 
 # ── Main API ───────────────────────────────────────────────────────────────
 
@@ -150,12 +169,12 @@ def predict_neo(date_str: str, observatory_index: int = 0) -> dict:
     """
     target_date = datetime.strptime(date_str, "%Y-%m-%d")
     
-    # 1. Filter raw_df for approaches within ±30 days
+    # 1. Filter raw_df for UPCOMING approaches (from target_date to +180 days)
     df = RAW_DF.copy()
     df['cd_dt'] = pd.to_datetime(df['cd'])
     
-    mask = (df['cd_dt'] >= target_date - timedelta(days=30)) & \
-           (df['cd_dt'] <= target_date + timedelta(days=30))
+    mask = (df['cd_dt'] >= target_date) & \
+           (df['cd_dt'] <= target_date + timedelta(days=180))
     df_window = df[mask].copy()
     
     if df_window.empty:
@@ -164,7 +183,7 @@ def predict_neo(date_str: str, observatory_index: int = 0) -> dict:
             "observatory": OBS_NAMES[observatory_index],
             "total_neos_in_window": 0,
             "top_neos": [],
-            "summary": f"No NEOs found in the window around {date_str}."
+            "summary": f"No upcoming NEOs found in the window after {date_str}."
         }
 
     # 2. Compute Features
@@ -180,8 +199,8 @@ def predict_neo(date_str: str, observatory_index: int = 0) -> dict:
     X_reg = df_feats[features_reg]
     df_feats['predicted_threat_score'] = THREAT_REG.predict(X_reg)
     
-    # 4. Sort and take Top 5
-    df_top = df_feats.sort_values(by='predicted_threat_score', ascending=False).head(5)
+    # 4. Sort and take Top 30
+    df_top = df_feats.sort_values(by='predicted_threat_score', ascending=False).head(30)
     
     # 5. Viewing details
     top_neos_list = []
@@ -196,11 +215,14 @@ def predict_neo(date_str: str, observatory_index: int = 0) -> dict:
         # Orbital elements
         orbit = get_orbital_elements(str(row['des']))
         
+        # Send raw diameter for frontend precision handling
+        diam_km = float(row['diameter_km'])
+        
         top_neos_list.append({
             "name": str(row['des']),
             "close_approach_date": row['cd_dt'].strftime("%Y-%b-%d %H:%M"),
             "distance_km": float(round(row['dist_km'], -3)),
-            "diameter_km": float(round(row['diameter_km'], 2)),
+            "diameter_km": diam_km,
             "velocity_kms": float(round(row['v_rel'], 2)),
             "threat_level": row['threat_level'],
             "threat_score": float(round(row['predicted_threat_score'], 5)),

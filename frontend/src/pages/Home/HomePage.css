@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+
+:root {
+  font-family: 'Outfit', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #050510;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.app {
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a1a40 0%, #050510 70%, #020205 100%);
+  position: relative;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ui-container {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ui-container h1 {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #fff 0%, #888 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.ui-container p {
+  margin: 10px 0 0 0;
+  font-size: 1.1rem;
+  font-weight: 300;
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+
+.instructions {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 30px;
+  border-radius: 50px;
+  color: white;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.instructions:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.loader {
+  position: fixed;
+  inset: 0;
+  background: #050510;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #8a2be2;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #8a2be2;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Side Panels */
+.side-panel {
+  position: absolute;
+  top: 150px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.left {
+  left: 40px;
+}
+
+.right {
+  right: 40px;
+  width: 280px;
+}
+
+.block {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  width: 250px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.about-guide {
+  width: auto;
+}
+
+.block h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: #8a2be2;
+  text-transform: uppercase;
+}
+
+.block p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  line-height: 1.4;
+  font-weight: 300;
+}
+
+/* Hover Glow Animation */
+.block:hover {
+  transform: translateX(10px) scale(1.02);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(138, 43, 226, 0.4);
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.2);
+}
+
+.right .block:hover {
+  transform: translateX(-10px) scale(1.02);
+}
+
+.block-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.block:hover .block-glow {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .side-panel {
+    display: none;
+  }
+}
+
+/* React integration overrides */
+.ui-container,
+.side-panel,
+.instructions {
+  position: absolute;
+  z-index: 10;
+}
+
+#three-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.block {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.block:active {
+  transform: scale(0.98);
+}

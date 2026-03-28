@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     # API keys
     ANTHROPIC_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
     NASA_API_KEY: str = ""
 
     # Note: ALLOWED_ORIGINS is NOT here as requested by USER.

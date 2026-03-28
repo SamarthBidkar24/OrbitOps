@@ -29,6 +29,36 @@ const getBortleLabel = (bortle) => {
   return 'Inner-City Sky';
 };
 
+// BUG FIX 7 — Detailed Bortle description for user city popup
+const getBortleDescription = (bortle) => {
+  const descs = {
+    1: 'Excellent dark sky — Milky Way casts shadows',
+    2: 'Truly dark sky — Milky Way clearly visible',
+    3: 'Rural sky — some light pollution',
+    4: 'Rural/Suburban transition',
+    5: 'Suburban sky — Milky Way faint',
+    6: 'Bright suburban sky',
+    7: 'Suburban/Urban transition',
+    8: 'City sky — only brightest stars visible',
+    9: 'Inner city sky — no stars visible',
+  };
+  return descs[bortle] || descs[8];
+};
+
+// BUG FIX 2/findNearestCity — pure Euclidean nearest-city search
+const findNearestCity = (lat, lon, cities) => {
+  if (!cities || cities.length === 0) return null;
+  let nearest = cities[0];
+  let minDist = Infinity;
+  cities.forEach((city) => {
+    const dist = Math.sqrt(
+      Math.pow(city.lat - lat, 2) + Math.pow(city.lon - lon, 2)
+    );
+    if (dist < minDist) { minDist = dist; nearest = city; }
+  });
+  return nearest;
+};
+
 // ─── BUG FIX 5: Fallback hardcoded cities if API fails ───────────────────────
 const getFallbackCities = () => [
   { name: 'Mumbai',       lat: 19.0760, lon: 72.8777, bortle_class: 8, bortle: 8, population: 20000000, state: 'Maharashtra' },
@@ -95,54 +125,90 @@ export default function DarkSkyMap() {
   const mapContainerRef = useRef(null); // DOM node for the map div
   const leafletMapRef   = useRef(null); // L.Map instance
   const markersRef      = useRef([]);   // track added layers for cleanup
+  const userMarkerRef   = useRef(null); // BUG FIX 6 — ref for gold user marker
 
-  const [cities,   setCities]   = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [userPos,  setUserPos]  = useState(DELHI); // [lat, lon]
-  const [flyTarget,setFlyTarget]= useState(null);
+  const [cities,    setCities]    = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [flyTarget, setFlyTarget] = useState(null);
 
-  // ── BUG FIX 4: Fetch with fallback ──
+  // BUG FIX 3 — State variables for user location
+  const [userCity,   setUserCity]   = useState(null);
+  const [mapCenter,  setMapCenter]  = useState([20.5937, 78.9629]); // India center
+  const [zoom,       setZoom]       = useState(5);
+
+  // ── BUG FIX 4 — Geolocation helpers (defined inside component to access state setters) ──
+  const fetchUserLocationByIP = React.useCallback(async (cityList) => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      const { latitude, longitude, city } = data;
+      console.log('IP-based location:', city, latitude, longitude);
+      const nearest = findNearestCity(latitude, longitude, cityList);
+      setUserCity(nearest);
+      setMapCenter([latitude, longitude]);
+      setZoom(7);
+    } catch (error) {
+      console.error('IP location failed:', error);
+      // Final fallback — use Mumbai (not Delhi) as generic default
+      const defaultCity = cityList.find((c) => c.name === 'Mumbai') || cityList[0];
+      if (defaultCity) {
+        setUserCity(defaultCity);
+        setMapCenter([defaultCity.lat, defaultCity.lon]);
+        setZoom(5);
+      }
+    }
+  }, []);
+
+  const getUserLocation = React.useCallback((cityList) => {
+    if (!navigator.geolocation) {
+      fetchUserLocationByIP(cityList);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        console.log('User location:', latitude, longitude);
+        const nearest = findNearestCity(latitude, longitude, cityList);
+        setUserCity(nearest);
+        setMapCenter([latitude, longitude]);
+        setZoom(7);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        fetchUserLocationByIP(cityList);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, [fetchUserLocationByIP]);
+
+  // ── Fetch cities then trigger geolocation ──
   useEffect(() => {
     const fetchCities = async () => {
       try {
         const response = await axios.get('/api/v1/meteor/darkmap');
         console.log('Darkmap API Response:', response.data);
-
-        // Backend returns { cities: [...] }
         const raw = response.data;
         const list = Array.isArray(raw) ? raw : (raw?.cities ?? []);
-
-        // Normalise field names: backend uses {bortle}, spec uses {bortle_class}
         const normalised = list.map((c) => ({
           ...c,
           bortle_class: c.bortle_class ?? c.bortle ?? 5,
           bortle:       c.bortle       ?? c.bortle_class ?? 5,
         }));
-
-        if (normalised.length > 0) {
-          setCities(normalised);
-        } else {
-          console.warn('API returned empty city list — using fallback');
-          setCities(getFallbackCities());
-        }
+        const cityList = normalised.length > 0 ? normalised : getFallbackCities();
+        if (normalised.length === 0) console.warn('API empty — using fallback');
+        setCities(cityList);
+        getUserLocation(cityList); // BUG FIX 4 — call after cities are ready
       } catch (error) {
         console.error('Failed to fetch darkmap:', error);
-        setCities(getFallbackCities());
+        const cityList = getFallbackCities();
+        setCities(cityList);
+        getUserLocation(cityList);
       } finally {
         setLoading(false);
       }
     };
     fetchCities();
-  }, []);
-
-  // ── Geolocation ──
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
-      ()  => {}, // keep Delhi default on error
-      { timeout: 6000 }
-    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── BUG FIX 8: Initialise map AFTER data loads, destroy on unmount ──
@@ -213,21 +279,16 @@ export default function DarkSkyMap() {
       markersRef.current.push(cm);
     });
 
-    // ── User location marker ──
+    // ── Initial blue dot at India center (replaced by gold user marker later) ──
     const userIcon = L.divIcon({
-      html: `<div style="width:18px;height:18px;border-radius:50%;
-                          background:#3b82f6;border:2.5px solid #fff;
-                          box-shadow:0 0 0 6px rgba(59,130,246,0.25)"></div>`,
+      html: `<div style="width:12px;height:12px;border-radius:50%;
+                          background:rgba(99,102,241,0.4);border:1px solid rgba(255,255,255,0.2);"></div>`,
       className: '',
-      iconSize:   [18, 18],
-      iconAnchor: [9, 9],
+      iconSize:   [12, 12],
+      iconAnchor: [6, 6],
     });
-
-    const userMarker = L.marker(userPos, { icon: userIcon, zIndexOffset: 1000 })
-      .bindPopup('<b style="color:#3b82f6">📍 Your Location</b>')
-      .addTo(map);
-
-    markersRef.current.push(userMarker);
+    const centerDot = L.marker([20.5937, 78.9629], { icon: userIcon, zIndexOffset: 10, interactive: false }).addTo(map);
+    markersRef.current.push(centerDot);
 
     return () => {
       map.remove();
@@ -242,6 +303,51 @@ export default function DarkSkyMap() {
     if (!flyTarget || !leafletMapRef.current) return;
     leafletMapRef.current.flyTo(flyTarget, 9, { duration: 1.4 });
   }, [flyTarget]);
+
+  // ── BUG FIX 5 — Gold pulsing marker for user's detected city ──
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!userCity || !map) return;
+
+    // Remove previous user marker
+    if (userMarkerRef.current) {
+      map.removeLayer(userMarkerRef.current);
+      userMarkerRef.current = null;
+    }
+
+    const bortle = userCity.bortle_class ?? userCity.bortle ?? 5;
+
+    // Gold pulsing circleMarker
+    const goldMarker = L.circleMarker([userCity.lat, userCity.lon], {
+      radius:      14,
+      color:       '#ffd700',
+      fillColor:   '#ffd700',
+      fillOpacity: 0.55,
+      weight:      3,
+    })
+    .bindPopup(
+      `<div style="font-family:system-ui;min-width:200px;padding:4px">
+         <p style="font-weight:900;font-size:15px;margin:0 0 3px;color:#1a0a00">
+           📍 You are near: ${userCity.name}
+         </p>
+         <p style="font-size:12px;color:#4f46e5;font-weight:700;margin:0 0 3px">
+           Bortle ${bortle}
+         </p>
+         <p style="font-size:11px;color:#374151;margin:0">
+           ${getBortleDescription(bortle)}
+         </p>
+       </div>`,
+      { maxWidth: 240 }
+    )
+    .addTo(map);
+
+    userMarkerRef.current = goldMarker;
+
+    // Fly to user's actual location after map is ready
+    map.flyTo([userCity.lat, userCity.lon], zoom, { duration: 1.2 });
+    console.log(`User city set: ${userCity.name} — Bortle ${bortle}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userCity]);
 
   // ── Top 10 darkest spots for sidebar ──
   const topSpots = useMemo(() => {

@@ -146,9 +146,9 @@ def process_city(args):
 if __name__ == "__main__":
     showers_df, top_cities = load_data()
     
-    # Date range: today to today + 365 days
-    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    dates = [start_date + timedelta(days=i) for i in range(365)]
+    # Date range: 2025-01-01 to 2026-12-31 (approx 730 days)
+    start_date = datetime(2025, 1, 1)
+    dates = [start_date + timedelta(days=i) for i in range(730)]
     
     # Prepare arguments for multiprocessing
     args_list = []
